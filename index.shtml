@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Can the Rockies win 35 games?</title>
+    <link type="text/css" href="styles.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div id="main-content">
+        <h1>Can the Colorado Rockies win <del>94</del> 35 games?</h1>
+        <p id="canThey">&nbsp;</p>
+
+        <p id="additionalStats"></p>
+
+    </div>
+    <footer>
+        <p>What is this all about? Colorado Rockies owner Dick Monfort <a href="https://www.cbssports.com/mlb/news/rockies-owner-dick-monfort-has-a-bizarre-explanation-for-his-94-win-prediction-for-2020/" target="_blank">confidently stated that in 2020 the Rockies will win 94 games</a>, despite making almost zero significant roster changes to a team that went 71-91 in 2019. Obviously, this is all sheer lunacy. But let me do the math here for you each day, and let's humour him.</p>
+        <p>As the season is shortened to 60 games, the magic number is now 35.</p>
+        <p>This page uses real-time data from sportsdata.io. &copy; Chris Finlay, 2020.</p>
+    </footer>
+    <script type="text/javascript">
+        printData()
+        async function getRankingsData() {
+            //returns the Rockies season data as an object
+            try {
+                const response = await fetch('https://api.sportsdata.io/v3/mlb/scores/json/Standings/2020?key=INSERTSPORTSDATAIO KEY HERE')
+                const responseData = await response.json()
+                const rockiesData = responseData.find(team => team.Key === "COL")
+                return rockiesData
+            } catch (e) {
+                console.log(e)
+            }
+        }
+
+        async function printData() {
+            try {
+                const rockiesData = await getRankingsData()
+                const gamesWon = rockiesData.Wins
+                const gamesLost = rockiesData.Losses
+                const gamesPlayed = gamesWon + gamesLost
+                const needToWin = 35 - gamesWon
+                const lossThreshold = 25 - gamesLost
+                if (gamesLost < 25) {
+                    canThey.innerHTML = '<span class="good">Yes</span>! The Rockies can still win <del>94</del> 35 games this season! They\'ve won ' + gamesWon + ', and lost ' + gamesLost + '. They need to win ' + needToWin + ' more games, without losing more than ' + lossThreshold + ' games.'
+                } else if (gamesLost === 25) {
+                    canThey.innerHTML = '<span class="good">Yes</span>! The Rockies can still win <del>94</del> 35 games this season! They\'ve won ' + gamesWon + ', and lost ' + gamesLost + '. They need to win ' + needToWin + ' more games, without losing any more games.'
+                } else {
+                    canThey.innerHTML = '<span class="bad">No</span>! They\'ve already lost ' + gamesLost + ' games, which is ' + Math.abs(lossThreshold) + ' too many.'
+                }
+                const homePlayed = rockiesData.HomeWins + rockiesData.HomeLosses
+                const awayPlayed = rockiesData.AwayWins + rockiesData.AwayLosses
+                const homePerc = (rockiesData.HomeWins / homePlayed).toFixed(3)
+                const roadPerc = (rockiesData.AwayWins / awayPlayed).toFixed(3)
+                const overallPerc = (rockiesData.Percentage).toFixed(3)
+                const regularWins = Math.floor(162 * rockiesData.Percentage)
+                const onPace = Math.round(60 * overallPerc)
+                additionalStats.innerHTML = `Of the Rockies' ${gamesWon} wins, ${rockiesData.HomeWins} have come at home, and ${rockiesData.AwayWins} on the road. ${rockiesData.HomeLosses} losses have been at home, and ${rockiesData.AwayLosses} on the road. <br />
+                Home %: ${homePerc} (${rockiesData.HomeWins}-${rockiesData.HomeLosses})<br />
+                Away %: ${roadPerc} (${rockiesData.AwayWins}-${rockiesData.AwayLosses})<br />
+                Overall %: ${overallPerc}. They are on pace to win ${onPace} games this season. In a regular 162 game season, that would have been ${regularWins} games.`
+                
+            } catch (e) {
+                console.log(e)
+            }
+        }
+    </script>
+</body>
+</html>
